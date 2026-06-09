@@ -26,12 +26,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-stomp") // WebSocket 연결 엔드포인트 설정
-                //.setAllowedOrigins("http://localhost:8080") // 특정 도메인에서만 WebSocket 허용 (보안 강화)
-                //.setAllowedOrigins("*")
+        // 1) 네이티브 WebSocket 엔드포인트 (SockJS 미사용)
+        //    SockJS는 /info 핸드셰이크 + 전송방식 협상(websocket 실패 시 xhr 폴백 ~5초)으로 입장이 느림.
+        //    Railway는 wss 를 지원하므로 프론트가 네이티브 WebSocket(wss://.../ws-stomp)으로 바로 붙으면 즉시 연결됨.
+        registry.addEndpoint("/ws-stomp")
+                .setAllowedOriginPatterns("*");
+
+        // 2) SockJS 엔드포인트 (네이티브 WS가 불가한 환경을 위한 폴백)
+        registry.addEndpoint("/ws-stomp")
                 .setAllowedOriginPatterns("*")
-                // 프론트엔드(@stomp/stompjs + SockJS)가 SockJS로 접속하므로 서버도 SockJS 활성화 필수.
-                // 미설정 시 /ws-stomp/info 핸드셰이크가 없어 클라이언트 연결이 실패함.
                 .withSockJS();
     }
 
