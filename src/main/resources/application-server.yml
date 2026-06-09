@@ -7,9 +7,8 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 
-  web:
-    resources:
-      static-locations: file:/file-assets/
+  # 정적 리소스 서빙은 WebMvcConfig 의 /images/** 핸들러가 담당.
+  # static-locations 를 file:/file-assets/ 로 덮어쓰면 classpath:/static(기본 이미지)이 가려지므로 오버라이드하지 않음.
 
   # AWS SDK 자동설정 제외 (S3 미사용 → EC2 메타데이터 조회로 인한 기동 지연/실패 방지)
   autoconfigure:
@@ -87,8 +86,11 @@ cloud:
       auto: false
 
 file:
-  upload-dir: /file-assets
-  default-image: /file-assets/noImage.png
+  # 업로드 저장 루트(절대경로). Railway 볼륨을 붙이려면 FILE_UPLOAD_DIR 로 마운트 경로 주입.
+  # ※ Railway 컨테이너 파일시스템은 휘발성이라 볼륨 미사용 시 재배포마다 업로드 파일이 사라짐.
+  upload-dir: ${FILE_UPLOAD_DIR:/app/file-assets}
+  # 기본 이미지: classpath:/static/images/noImage.png 가 /images/noImage.png 로 서빙됨.
+  default-image: /images/noImage.png
 
 mail:
   address:

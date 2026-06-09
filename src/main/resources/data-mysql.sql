@@ -150,3 +150,25 @@ INSERT IGNORE INTO `tag` (tag_id, tag_name, tag_type) VALUES (26, '진지한', '
 INSERT IGNORE INTO `tag` (tag_id, tag_name, tag_type) VALUES (27, '실내', '장소');
 INSERT IGNORE INTO `tag` (tag_id, tag_name, tag_type) VALUES (28, '야외', '장소');
 INSERT IGNORE INTO `tag` (tag_id, tag_name, tag_type) VALUES (29, '온라인', '장소');
+
+-- ============================================================
+-- 기존 깨진 이미지 경로 보정
+-- 과거 로컬 개발용 경로(C:/..., http://192.168..., /file-assets/noImage.png)나
+-- NULL 로 저장된 프로필/그룹 이미지를 서빙 가능한 기본 이미지(/images/noImage.png)로 교체.
+-- 정상 업로드 경로(/images/...)는 영향받지 않음. (매 기동 실행되어도 멱등)
+-- ============================================================
+UPDATE `member` SET image = '/images/noImage.png'
+ WHERE image IS NULL
+    OR image = ''
+    OR image = '/file-assets/noImage.png'
+    OR image LIKE 'C:/%'
+    OR image LIKE 'http://192.168.%'
+    OR image LIKE 'http://10.%'
+    OR image LIKE 'http://172.%';
+
+UPDATE `club` SET image = '/images/noImage.png'
+ WHERE image = '/file-assets/noImage.png'
+    OR image LIKE 'C:/%'
+    OR image LIKE 'http://192.168.%'
+    OR image LIKE 'http://10.%'
+    OR image LIKE 'http://172.%';

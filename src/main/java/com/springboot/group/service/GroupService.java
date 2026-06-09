@@ -111,23 +111,11 @@ public class GroupService {
         // 그룹 먼저 저장
         Group savedGroup = groupRepository.save(group);
 
-        String baseDir = "C:/my-upload-dir/groups/" + savedGroup.getGroupId();
-        File folder = new File(baseDir);
-        if (!folder.exists()) {
-            boolean created = folder.mkdirs();
-            if (!created) throw new IOException("폴더 생성 실패: " + baseDir);
-        }
-
-        String fileName = "profile.jpg";
-        File dest = new File(folder, fileName);
-        try {
-            image.transferTo(dest);
-        } catch (IOException | IllegalStateException e) {
-            e.printStackTrace();
-        }
-
-        // URL 세팅
-        String imageUrl = "http://192.168.45.174:8080/groups/" + savedGroup.getGroupId() + "/" + fileName;
+        // 이미지 저장: 운영(리눅스) 환경에서 동작하도록 StorageService 사용.
+        // 하드코딩된 윈도우 경로(C:/my-upload-dir)/LAN URL은 컨테이너에서 FileNotFoundException 유발하므로 제거.
+        // store()는 "/images/groups/{id}/profile.{ext}" 형태의 서빙 가능한 경로를 반환한다.
+        String pathWithoutExt = "groups/" + savedGroup.getGroupId() + "/profile";
+        String imageUrl = storageService.store(image, pathWithoutExt);
         savedGroup.setImage(imageUrl);
         groupRepository.save(savedGroup);
 
